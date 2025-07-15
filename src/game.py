@@ -28,6 +28,7 @@ class Game:
     def run(self):
         while True:
             self.display.fill((0, 0, 0)) # if we don't have this, the assets moving across the screen leave a trail
+            
             self.tilemap.render(self.display)
             self.player.update((self.movement[1] - self.movement[0], 0))
             self.player.render(self.display)
