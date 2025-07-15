@@ -32,11 +32,14 @@ class Tilemap:
                 rects.append(pygame.Rect(tile['pos'][0] * self.tileSize, tile['pos'][1] * self.tileSize, self.tileSize, self.tileSize))
         return rects
 
-    def render(self, surface):
+    def render(self, surface, offset=(0, 0)):
         for loc in self.offGridTiles:
             tile = self.offGridTiles[loc]
-            surface.blit(self.game.assets[tile['type']][tile['variant']], tile['pos'])
+            surface.blit(self.game.assets[tile['type']][tile['variant']], (tile['pos'][0] - offset[0], tile['pos'][1] - offset[1]))
 
-        for loc in self.tilemap:
-            tile = self.tilemap[loc]
-            surface.blit(self.game.assets[tile['type']][tile['variant']], (tile['pos'][0] * self.tileSize, tile['pos'][1] * self.tileSize))
+        for x in range(offset[0] // self.tileSize, (offset[0] + surface.get_width()) // self.tileSize):
+            for y in range(offset[1] // self.tileSize, (offset[1] + surface.get_height()) // self.tileSize):
+                loc = str(x) + ';' + str(y)
+                if loc in self.tilemap:
+                    tile = self.tilemap[loc]
+                    surface.blit(self.game.assets[tile['type']][tile['variant']], (tile['pos'][0] * self.tileSize - offset[0], tile['pos'][1] * self.tileSize - offset[1]))
