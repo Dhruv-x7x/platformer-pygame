@@ -9,9 +9,18 @@ class PhysicsEntity:
         self.size = size
         self.velocity = [0, 0]
         self.collisions = {'down': False, 'up': False, 'right': False, 'left': False}
-    
+        self.action = ''
+        self.animOffset = (-3, -3)
+        self.flip = False
+        self.set_action('idle')
+
     def rect(self):
         return pygame.Rect(self.pos[0], self.pos[1], self.size[0], self.size[1])
+    
+    def set_action(self, action):
+        if action != self.action:
+            self.action = action
+            self.animation = self.game.assets[self.type + '/' + self.action].copy()
     
     def update(self, tilemap, movement = (0, 0)):
         self.collisions = {'down': False, 'up': False, 'right': False, 'left': False}
@@ -42,10 +51,37 @@ class PhysicsEntity:
                     self.collisions['up'] = True
                 self.pos[1] = entityRect.y
 
+        if movement[0] > 0:
+            self.flip = False
+        if movement[0] < 0:
+            self.flip = True
+
         self.velocity[1] = min(5, self.velocity[1] + 0.1)
 
         if self.collisions['down'] or self.collisions['up']:
             self.velocity[1] = 0
 
+        self.animation.update()
+
     def render(self, surface, offset=(0, 0)):
-        surface.blit(self.game.assets['player'], (self.pos[0] - offset[0], self.pos[1] - offset[1]))
+        surface.blit(pygame.transform.flip(self.animation.img(), self.flip, False), (self.pos[0] - offset[0] - self.animOffset[0], self.pos[1] - offset[1] - self.animOffset[1]))
+
+class Player(PhysicsEntity):
+    def __init__(self, game, pos, size):
+        super().__init__(game, 'player', pos, size)
+        self.airTime = 0
+
+    def update(self, tilemap, movement=(0, 0)):
+        super().update(tilemap, movement)
+
+        self.airTime += 1
+        
+        if self.collisions['down']:
+            self.airTime = 0
+        
+        if self.airTime > 4:
+            self.set_action('jump')
+        elif movement[0] != 0:
+            self.set_action('run')
+        else:
+            self.set_action('idle')
